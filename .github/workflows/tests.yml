@@ -1,32 +1,46 @@
 name: Run Tests
 
 on:
-  push:
-  pull_request:
+ push:
+ pull_request:
 
 jobs:
-  test:
+ test:
 
-    runs-on: ubuntu-latest
+  runs-on: ubuntu-latest
+  
+  steps:
 
-    steps:
+  - name: Checkout code
+    uses: actions/checkout@v4
 
-      - name: Checkout code
-        uses: actions/checkout@v4
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.12"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+  - name: Install dependencies
+    run: |
+      pip install -r requirements.txt
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+  - name: Run smoke tests
+    run: |
+      pytest -m smoke --html=smoke-report.html --self-contained-html
 
-      - name: Run smoke tests
-        run: |
-          pytest -m smoke
+  - name: Upload Smoke Report
+    if: always()
+    uses: actions/upload-artifact@v4
+    with:
+      name: smoke-report
+      path: smoke-report.html
 
-      - name: Run regression tests
-        run: |
-          pytest -m regression
+  - name: Run regression tests
+    run: |
+      pytest -m regression --html=regression-report.html --self-contained-html
+
+  - name: Upload Regression Report
+    if: always()
+    uses: actions/upload-artifact@v4
+    with:
+      name: regression-report
+      path: regression-report.html
